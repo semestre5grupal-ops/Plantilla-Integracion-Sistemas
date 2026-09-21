@@ -5,8 +5,8 @@ import { CreateAtraccionDto } from './dto/create-atraccion.dto';
 import { UpdateAtraccionDto } from './dto/update-atraccion.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { AtraccionResponseDto } from './dto/atraccion-response.dto';
-import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
-import { PaginatedResponseDto } from '../../../common/dto/paginated-response.dto';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
 
 @ApiTags('Atracciones')
 @Controller('atracciones')

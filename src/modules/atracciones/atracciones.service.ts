@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAtraccionDto } from './dto/create-atraccion.dto';
 import { UpdateAtraccionDto } from './dto/update-atraccion.dto';
-import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Injectable()
 export class AtraccionesService {

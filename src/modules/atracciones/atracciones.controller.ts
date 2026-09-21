@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Put, Param, Delete, ParseUUIDPipe, Res, HttpCode, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Put, Param, Delete, ParseUUIDPipe, Res, HttpCode, HttpStatus, Query, Header } from '@nestjs/common';
 import { Response } from 'express';
 import { AtraccionesService } from './atracciones.service';
 import { CreateAtraccionDto } from './dto/create-atraccion.dto';
@@ -7,11 +7,23 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { AtraccionResponseDto } from './dto/atraccion-response.dto';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
+import { SearchAtraccionesDto } from './dto/search-atracciones.dto';
+import { AvailabilityResponseDto } from './dto/availability.dto';
+import { ReservationRequestDto, ReservationResponseDto } from './dto/reservation.dto';
 
 @ApiTags('Atracciones')
 @Controller('atracciones')
 export class AtraccionesController {
   constructor(private readonly atraccionesService: AtraccionesService) {}
+
+  @Post('search')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Búsqueda de atracciones (Demand API estilo Booking)' })
+  @ApiResponse({ status: 200, description: 'Resultados de la búsqueda.' })
+  @ApiResponse({ status: 400, description: 'Bad Request. Datos de entrada inválidos.' })
+  search(@Body() searchDto: SearchAtraccionesDto) {
+    return this.atraccionesService.search(searchDto);
+  }
 
   @Post()
   @ApiOperation({ summary: 'Registrar una nueva atracción' })
@@ -27,6 +39,8 @@ export class AtraccionesController {
   }
 
   @Get()
+  @Header('X-API-Deprecation-Date', '2027-12-31')
+  @Header('Cache-Control', 'max-age=300')
   @ApiOperation({ summary: 'Obtener el listado paginado de atracciones' })
   @ApiResponse({ status: 200, description: 'Listado de atracciones recuperado exitosamente.', type: PaginatedResponseDto })
   findAll(@Query() query: PaginationQueryDto) {
@@ -41,12 +55,40 @@ export class AtraccionesController {
   }
 
   @Get(':id')
+  @Header('X-API-Deprecation-Date', '2027-12-31')
+  @Header('Cache-Control', 'max-age=300')
   @ApiOperation({ summary: 'Obtener el detalle de una atracción por su ID' })
   @ApiParam({ name: 'id', description: 'UUID de la atracción', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Detalle de la atracción.', type: AtraccionResponseDto })
   @ApiResponse({ status: 404, description: 'Not Found. La atracción no existe.' })
   findOne(@Param('id', ParseUUIDPipe) id: string): AtraccionResponseDto {
     return this.atraccionesService.findOne(id);
+  }
+
+  @Get(':id/availability')
+  @ApiOperation({ summary: 'Consultar disponibilidad de cupos' })
+  @ApiParam({ name: 'id', description: 'UUID de la atracción', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Disponibilidad recuperada exitosamente.', type: AvailabilityResponseDto })
+  @ApiResponse({ status: 404, description: 'Not Found. La atracción no existe.' })
+  getAvailability(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('date') date: string
+  ): AvailabilityResponseDto {
+    return this.atraccionesService.getAvailability(id, date);
+  }
+
+  @Post(':id/reservations')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Crear una reserva de la atracción' })
+  @ApiParam({ name: 'id', description: 'UUID de la atracción', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 201, description: 'Reserva confirmada', type: ReservationResponseDto })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiResponse({ status: 404, description: 'Not Found.' })
+  reserve(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() reservationDto: ReservationRequestDto
+  ): ReservationResponseDto {
+    return this.atraccionesService.reserve(id, reservationDto);
   }
 
   @Put(':id')

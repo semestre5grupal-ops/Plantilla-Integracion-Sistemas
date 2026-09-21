@@ -1,33 +1,53 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseResponseDto } from '../../../common/dto/base-response.dto';
+import { PriceDto, LocationDto, PhotoDto, RatingDto, OperatorDto } from './nested-types.dto';
+import { ProductType } from './create-atraccion.dto';
 
 export class AtraccionResponseDto extends BaseResponseDto {
   @ApiProperty({ description: 'UUID único de la atracción', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000' })
   id: string;
 
-  @ApiProperty({ description: 'Nombre de la atracción turística', example: 'Tour al Parque Nacional Cotopaxi' })
-  nombre: string;
+  @ApiProperty({ description: 'Nombre de la atracción', example: 'Heineken Experience Amsterdam' })
+  name: string;
 
-  @ApiProperty({ description: 'Descripción detallada de la atracción', example: 'Excursión guiada al volcán Cotopaxi, incluye caminata hasta el refugio.' })
-  descripcion: string;
+  @ApiProperty({ description: 'Descripción detallada', example: 'Discover the history of Heineken...' })
+  long_description: string;
 
-  @ApiProperty({ description: 'Ciudad principal desde donde opera', example: 'Quito' })
-  ciudad: string;
+  @ApiProperty({ description: 'Duración (Formato ISO 8601)', example: 'PT2H' })
+  duration: string;
 
-  @ApiProperty({ description: 'Latitud geográfica de la atracción', example: -0.680556 })
-  latitud: number;
+  @ApiProperty({ description: 'Precio de la atracción', type: PriceDto })
+  price: PriceDto;
 
-  @ApiProperty({ description: 'Longitud geográfica de la atracción', example: -78.437778 })
-  longitud: number;
+  @ApiProperty({ description: 'Empresa Operadora', type: OperatorDto })
+  operator: OperatorDto;
 
-  @ApiProperty({ description: 'Precio del ticket por persona (USD)', example: 45.00 })
-  precioTicket: number;
+  @ApiProperty({ description: 'Tipo de producto', enum: ProductType, example: ProductType.GUIDED_TOUR })
+  product_type: ProductType;
 
-  @ApiProperty({ description: 'Duración estimada del tour o visita en horas', example: 8 })
-  duracionHoras: number;
+  @ApiProperty({ description: 'Qué incluye el paquete o tour', example: ['Transporte', 'Guía'] })
+  includes: string[];
 
-  @ApiProperty({ description: 'Estado de disponibilidad de la atracción', example: true })
-  estaActivo: boolean;
+  @ApiProperty({ description: 'Categorías de la atracción', example: ['food_drinks'] })
+  categories: string[];
+
+  @ApiProperty({ description: 'Insignias comerciales', example: ['best_seller'] })
+  badges: string[];
+
+  @ApiProperty({ description: 'Ubicaciones asociadas a la atracción', type: [LocationDto] })
+  locations: LocationDto[];
+
+  @ApiProperty({ description: 'Fotos de la atracción', type: [PhotoDto] })
+  photos: PhotoDto[];
+
+  @ApiProperty({ description: 'Idiomas soportados', example: ['en-gb', 'nl'] })
+  supported_languages: string[];
+
+  @ApiProperty({ description: 'Tiene cancelación gratuita', example: true })
+  free_cancellation: boolean;
+
+  @ApiProperty({ description: 'Puntuaciones y reseñas', type: RatingDto, required: false })
+  ratings?: RatingDto;
 
   @ApiProperty({
     description: 'HATEOAS links para navegación',

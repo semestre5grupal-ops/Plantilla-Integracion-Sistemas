@@ -46,3 +46,9 @@ export class ReservationResponseDto {
   @ApiProperty({ description: 'Precio total de la reserva', type: PriceDto })
   total_price: PriceDto;
 }
+
+export class CancelReservationRequestDto {
+  @ApiProperty({ description: 'Razón de la cancelación', example: 'Plan cancelado' })
+  @IsString()
+  reason: string;
+}

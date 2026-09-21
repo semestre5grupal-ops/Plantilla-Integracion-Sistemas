@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Put, Param, Delete, ParseUUIDPipe, Res, HttpCode, HttpStatus, Query, Header } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Put, Param, Delete, ParseUUIDPipe, Res, HttpCode, HttpStatus, Query, Header, Headers, HttpException } from '@nestjs/common';
 import { Response } from 'express';
 import { AtraccionesService } from './atracciones.service';
 import { CreateAtraccionDto } from './dto/create-atraccion.dto';
@@ -9,7 +9,7 @@ import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
 import { SearchAtraccionesDto } from './dto/search-atracciones.dto';
 import { AvailabilityResponseDto } from './dto/availability.dto';
-import { ReservationRequestDto, ReservationResponseDto } from './dto/reservation.dto';
+import { ReservationRequestDto, ReservationResponseDto, CancelReservationRequestDto } from './dto/reservation.dto';
 
 @ApiTags('Atracciones')
 @Controller('atracciones')
@@ -84,11 +84,49 @@ export class AtraccionesController {
   @ApiResponse({ status: 201, description: 'Reserva confirmada', type: ReservationResponseDto })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 404, description: 'Not Found.' })
+  @ApiResponse({ status: 409, description: 'Conflicto de Idempotencia.' })
   reserve(
     @Param('id', ParseUUIDPipe) id: string,
+    @Headers('idempotency-key') idempotencyKey: string,
     @Body() reservationDto: ReservationRequestDto
   ): ReservationResponseDto {
-    return this.atraccionesService.reserve(id, reservationDto);
+    if (!idempotencyKey) {
+      throw new HttpException('Idempotency-Key header is required', HttpStatus.BAD_REQUEST);
+    }
+    return this.atraccionesService.reserve(id, reservationDto, idempotencyKey);
+  }
+
+  @Post('reservations/:reservationId/cancel')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cancelar una reserva existente (Requiere Idempotency-Key)' })
+  @ApiParam({ name: 'reservationId', description: 'ID de la reserva a cancelar', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Reserva cancelada exitosamente.', type: ReservationResponseDto })
+  @ApiResponse({ status: 409, description: 'Conflicto de Idempotencia.' })
+  cancelReservation(
+    @Param('reservationId', ParseUUIDPipe) reservationId: string,
+    @Headers('idempotency-key') idempotencyKey: string,
+    @Body() dto: CancelReservationRequestDto
+  ): ReservationResponseDto {
+    if (!idempotencyKey) {
+      throw new HttpException('Idempotency-Key header is required', HttpStatus.BAD_REQUEST);
+    }
+    return this.atraccionesService.cancelReservation(reservationId, dto, idempotencyKey);
+  }
+
+  @Get('reservations')
+  @ApiOperation({ summary: 'Consultar el historial de reservas del usuario' })
+  @ApiResponse({ status: 200, description: 'Listado de reservas.' })
+  getReservations(): ReservationResponseDto[] {
+    return this.atraccionesService.getReservations();
+  }
+
+  @Get('reservations/:reservationId')
+  @ApiOperation({ summary: 'Obtener detalle de una reserva específica' })
+  @ApiParam({ name: 'reservationId', description: 'ID de la reserva', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Detalle de la reserva.', type: ReservationResponseDto })
+  @ApiResponse({ status: 404, description: 'Reserva no encontrada.' })
+  getReservationById(@Param('reservationId', ParseUUIDPipe) reservationId: string): ReservationResponseDto {
+    return this.atraccionesService.getReservationById(reservationId);
   }
 
   @Put(':id')

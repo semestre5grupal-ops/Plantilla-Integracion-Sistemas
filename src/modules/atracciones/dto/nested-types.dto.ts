@@ -77,3 +77,15 @@ export class OperatorDto {
   @IsString()
   name: string;
 }
+
+export class UrlDto {
+  @ApiProperty({ description: 'URL web', example: 'https://www.booking.com/attractions/nl/prahazwttraa-heineken-experience-amsterdam.en-gb.html' })
+  @IsString()
+  web: string;
+
+  @ApiProperty({ description: 'URL para App (Deep Link)', example: 'booking://attractions/product?slug=prahazwttraa', required: false })
+  @IsString()
+  @IsOptional()
+  app?: string;
+}
+

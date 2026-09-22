@@ -64,6 +64,11 @@ export class SearchAtraccionesDto {
   @IsOptional()
   filters?: FiltersDto;
 
+  @ApiProperty({ description: 'Token opaco de paginación', example: 'eyJwYWdlIjoyfQ==', required: false })
+  @IsString()
+  @IsOptional()
+  next_page?: string;
+
   @ApiProperty({ description: 'Cantidad de filas a retornar', example: 20 })
   @IsInt()
   rows: number;

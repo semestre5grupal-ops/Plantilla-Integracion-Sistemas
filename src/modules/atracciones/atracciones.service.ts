@@ -3,6 +3,7 @@ import { CreateAtraccionDto } from './dto/create-atraccion.dto';
 import { UpdateAtraccionDto } from './dto/update-atraccion.dto';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { SearchAtraccionesDto } from './dto/search-atracciones.dto';
+import { DetailsRequestDto } from './dto/details-request.dto';
 import { AvailabilityResponseDto } from './dto/availability.dto';
 import { ReservationRequestDto, ReservationResponseDto, ReservationStatus, CancelReservationRequestDto } from './dto/reservation.dto';
 
@@ -10,9 +11,44 @@ import { ReservationRequestDto, ReservationResponseDto, ReservationStatus, Cance
 export class AtraccionesService {
   search(searchDto: SearchAtraccionesDto): any {
     return {
-      data: [],
-      metadata: { total_results: 0 },
+      data: [{
+        id: 'PRahAzWtTraa',
+        free_cancellation: true,
+        price: { currency: 'EUR', total: 20 },
+        url: { web: 'https://www.booking.com/attractions/nl/prahazwttraa' }
+      }],
+      metadata: { 
+        total_results: 128,
+        next_page: Buffer.from(JSON.stringify({ page: 2 })).toString('base64')
+      },
       request_id: 'mock-request-id'
+    };
+  }
+
+  getDetailsBatch(dto: DetailsRequestDto): any {
+    const data = dto.attractions.map(id => ({
+      id,
+      name: `Atracción ${id}`,
+      categories: ['food_drinks'],
+      duration: 'PT2H',
+      badges: ['best_seller'],
+      photos: [{ url: 'https://cf.bstatic.com/xdata/images/xphoto/500x375/170335205.jpg' }],
+      locations: [{
+        address: 'Centro',
+        city: -2140479,
+        country: 'nl',
+        coordinates: { latitude: 52.36, longitude: 4.88 },
+        type: 'attraction'
+      }],
+      long_description: `Detalles de la atracción ${id}`,
+      ratings: { number_of_reviews: 120, score: 4.8 },
+      supported_languages: dto.languages || ['en-gb'],
+      url: { web: `https://www.booking.com/attractions/nl/${id}`, app: `booking://attractions/product?slug=${id}` }
+    }));
+
+    return {
+      request_id: 'mock-batch-req',
+      data
     };
   }
 
@@ -75,7 +111,7 @@ export class AtraccionesService {
     return null;
   }
 
-  remove(id: string): void {
+  delete(id: string): void {
     // Eliminación
   }
 }

@@ -43,6 +43,30 @@ paths:
                 $ref: '#/components/schemas/SearchAtraccionesResponse'
         '400':
           $ref: '#/components/responses/ProblemDetails400'
+  /atracciones/details:
+    post:
+      tags:
+        - Atracciones - Catálogo
+      summary: Obtener detalles estáticos de múltiples atracciones (Batch)
+      security:
+        - OAuth2Security:
+          - attractions:read
+      description: Ideal para consultar múltiples IDs y evitar el problema N+1.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DetailsRequest'
+      responses:
+        '200':
+          description: Detalles de atracciones en los idiomas solicitados.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchAtraccionesResponse'
+        '400':
+          $ref: '#/components/responses/ProblemDetails400'
   /atracciones/health:
     get:
       tags:
@@ -144,6 +168,79 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AtraccionResponse'
+        '404':
+          $ref: '#/components/responses/ProblemDetails404'
+    put:
+      tags:
+        - Atracciones - Catálogo
+      summary: Reemplazar datos completos de una atracción
+      security:
+        - OAuth2Security:
+          - attractions:write
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAtraccionRequest'
+      responses:
+        '204':
+          description: Reemplazo exitoso sin contenido de respuesta.
+        '400':
+          $ref: '#/components/responses/ProblemDetails400'
+    patch:
+      tags:
+        - Atracciones - Catálogo
+      summary: Actualizar parcialmente una atracción
+      security:
+        - OAuth2Security:
+          - attractions:write
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAtraccionRequest'
+      responses:
+        '200':
+          description: Actualización exitosa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AtraccionResponse'
+        '400':
+          $ref: '#/components/responses/ProblemDetails400'
+    delete:
+      tags:
+        - Atracciones - Catálogo
+      summary: Eliminar una atracción
+      security:
+        - OAuth2Security:
+          - attractions:write
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Eliminación exitosa sin contenido.
         '404':
           $ref: '#/components/responses/ProblemDetails404'
   /atracciones/{id}/availability:
@@ -480,6 +577,26 @@ components:
         score:
           type: number
           format: float
+    Url:
+      type: object
+      properties:
+        web:
+          type: string
+          format: uri
+        app:
+          type: string
+          format: uri
+    DetailsRequest:
+      type: object
+      properties:
+        attractions:
+          type: array
+          items:
+            type: string
+        languages:
+          type: array
+          items:
+            type: string
     SearchAtraccionesRequest:
       type: object
       properties:
@@ -514,6 +631,9 @@ components:
                   format: float
                 minimum_review_count:
                   type: integer
+        next_page:
+          type: string
+          description: Token opaco de paginación
         rows:
           type: integer
           example: 20
@@ -535,6 +655,9 @@ components:
           properties:
             total_results:
               type: integer
+            next_page:
+              type: string
+              description: Token opaco para obtener la siguiente página
         request_id:
           type: string
     CreateAtraccionRequest:
@@ -635,6 +758,8 @@ components:
           type: boolean
         ratings:
           $ref: '#/components/schemas/Rating'
+        url:
+          $ref: '#/components/schemas/Url'
         _links:
           type: object
     PaginatedAtraccionResponse:

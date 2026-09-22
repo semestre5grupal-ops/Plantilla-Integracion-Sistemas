@@ -8,6 +8,8 @@ import { AtraccionResponseDto } from './dto/atraccion-response.dto';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
 import { SearchAtraccionesDto } from './dto/search-atracciones.dto';
+import { SearchAtraccionesResponseDto } from './dto/search-response.dto';
+import { DetailsRequestDto } from './dto/details-request.dto';
 import { AvailabilityResponseDto } from './dto/availability.dto';
 import { ReservationRequestDto, ReservationResponseDto, CancelReservationRequestDto } from './dto/reservation.dto';
 
@@ -18,11 +20,19 @@ export class AtraccionesController {
 
   @Post('search')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Búsqueda de atracciones (Demand API estilo Booking)' })
-  @ApiResponse({ status: 200, description: 'Resultados de la búsqueda.' })
+  @ApiOperation({ summary: 'Búsqueda de atracciones (soporta paginación por tokens)' })
+  @ApiResponse({ status: 200, description: 'Resultados de la búsqueda.', type: SearchAtraccionesResponseDto })
   @ApiResponse({ status: 400, description: 'Bad Request. Datos de entrada inválidos.' })
   search(@Body() searchDto: SearchAtraccionesDto) {
     return this.atraccionesService.search(searchDto);
+  }
+
+  @Post('details')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Obtener detalles de múltiples atracciones (Batch)' })
+  @ApiResponse({ status: 200, description: 'Detalles de atracciones', type: SearchAtraccionesResponseDto })
+  async getDetailsBatch(@Body() dto: DetailsRequestDto) {
+    return this.atraccionesService.getDetailsBatch(dto);
   }
 
   @Post()
@@ -63,6 +73,29 @@ export class AtraccionesController {
   @ApiResponse({ status: 404, description: 'Not Found. La atracción no existe.' })
   findOne(@Param('id', ParseUUIDPipe) id: string): AtraccionResponseDto {
     return this.atraccionesService.findOne(id);
+  }
+
+  @Put(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Reemplazar datos de una atracción' })
+  @ApiParam({ name: 'id', description: 'UUID de la atracción', type: 'string', format: 'uuid' })
+  async replace(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CreateAtraccionDto) {
+    return this.atraccionesService.replace(id, dto);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Actualizar parcialmente una atracción' })
+  @ApiParam({ name: 'id', description: 'UUID de la atracción', type: 'string', format: 'uuid' })
+  async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateAtraccionDto) {
+    return this.atraccionesService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Eliminar una atracción' })
+  @ApiParam({ name: 'id', description: 'UUID de la atracción', type: 'string', format: 'uuid' })
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
+    return this.atraccionesService.delete(id);
   }
 
   @Get(':id/availability')

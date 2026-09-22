@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseResponseDto } from '../../../common/dto/base-response.dto';
-import { PriceDto, LocationDto, PhotoDto, RatingDto, OperatorDto } from './nested-types.dto';
+import { PriceDto, LocationDto, PhotoDto, RatingDto, OperatorDto, UrlDto } from './nested-types.dto';
 import { ProductType } from './create-atraccion.dto';
 
 export class AtraccionResponseDto extends BaseResponseDto {
@@ -48,6 +48,9 @@ export class AtraccionResponseDto extends BaseResponseDto {
 
   @ApiProperty({ description: 'Puntuaciones y reseñas', type: RatingDto, required: false })
   ratings?: RatingDto;
+
+  @ApiProperty({ description: 'Enlaces directos a la plataforma', type: UrlDto, required: false })
+  url?: UrlDto;
 
   @ApiProperty({
     description: 'HATEOAS links para navegación',

@@ -1,6 +1,11 @@
+# Define la versión del estándar OpenAPI que estamos utilizando.
 openapi: 3.0.3
+
+# Sección de metadatos de la API
 info:
+  # El nombre de la API que aparecerá en la documentación generada (Swagger)
   title: API de Atracciones Turísticas
+  # Una descripción detallada de lo que hace este microservicio
   description: |
     Microservicio de Atracciones del Marketplace Turístico.
     Gestiona el catálogo de tours (GUIDED_TOUR), paquetes (PACKAGE) y entradas individuales (SINGLE_TICKET),
@@ -9,17 +14,28 @@ info:
     Todos los endpoints transaccionales exigen la cabecera `Idempotency-Key` (UUID v4) para
     garantizar operaciones idempotentes y evitar reservas o cancelaciones duplicadas.
     Los errores siguen el estándar RFC 7807 (application/problem+json).
+  # Versión actual de la API
   version: 1.2.0
+
+# Lista de servidores donde la API está alojada
 servers:
+  # URL del entorno local o API Gateway
   - url: /api/v1
     description: API Gateway - Ruta base
+
+# Categorías visuales para agrupar y organizar los endpoints en la documentación
 tags:
   - name: Atracciones - Catálogo
     description: Operaciones de lectura y escritura sobre el catálogo de tours y atracciones
   - name: Atracciones - Reservas
     description: Ciclo de vida transaccional de las reservas (crear, consultar, cancelar)
+
+# Aquí definimos todas las rutas (URLs) de nuestra API
 paths:
+  
+  # Endpoint para buscar atracciones con filtros complejos
   /atracciones/search:
+    # Método HTTP POST (Ideal para payloads de búsqueda grandes que exceden límites de URL en GET)
     post:
       tags:
         - Atracciones - Catálogo
@@ -43,6 +59,8 @@ paths:
                 $ref: '#/components/schemas/SearchAtraccionesResponse'
         '400':
           $ref: '#/components/responses/ProblemDetails400'
+  
+  # Endpoint masivo para recuperar datos estáticos y evitar N+1
   /atracciones/details:
     post:
       tags:
@@ -75,7 +93,10 @@ paths:
       responses:
         '200':
           description: Servicio de atracciones operativo
+  
+  # Endpoints sobre el recurso principal: Colección de Atracciones
   /atracciones:
+    # Obtener listado con paginación tradicional (Útil para catálogos simples)
     get:
       tags:
         - Atracciones - Catálogo
@@ -243,6 +264,8 @@ paths:
           description: Eliminación exitosa sin contenido.
         '404':
           $ref: '#/components/responses/ProblemDetails404'
+  
+  # Consultar disponibilidad de fechas o franjas horarias
   /atracciones/{id}/availability:
     get:
       tags:
@@ -273,11 +296,14 @@ paths:
                 $ref: '#/components/schemas/AvailabilityResponse'
         '404':
           $ref: '#/components/responses/ProblemDetails404'
+  
+  # Endpoint transaccional de creación de orden/reserva
   /atracciones/{id}/reservations:
     post:
       tags:
         - Atracciones - Reservas
       summary: Crear una reserva de la atracción
+      # Requiere autenticación y el scope de escritura
       security:
         - OAuth2Security:
           - attractions:book
@@ -288,6 +314,7 @@ paths:
           schema:
             type: string
             format: uuid
+        # Previene que un fallo de red resulte en compras dobles
         - name: Idempotency-Key
           in: header
           required: true
@@ -473,8 +500,12 @@ paths:
         '404':
           $ref: '#/components/responses/ProblemDetails404'
 
+# Componentes reutilizables. Aquí definimos moldes para no repetir código.
 components:
+  
+  # Moldes de Seguridad
   securitySchemes:
+    # Definimos cómo funciona el OAuth2 para atracciones
     OAuth2Security:
       type: oauth2
       flows:
@@ -484,8 +515,10 @@ components:
           scopes:
             attractions:read: Leer catálogo y detalles
             attractions:book: Hacer reservas
-            attractions:cancel: Cancelar reservas
-            attractions:write: Crear y editar el catálogo
+            attractions:write: Crear y mantener inventario
+            attractions:webhooks: Gestionar webhooks
+  
+  # Moldes de Respuestas de Error estandarizadas
   responses:
     ProblemDetails400:
       description: Petición inválida
@@ -505,7 +538,10 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
+  
+  # Moldes de Datos (Schemas). Definimos los JSON exactos que viajan en las peticiones.
   schemas:
+    # Esquema estándar para reportar errores detallados (RFC 7807)
     ProblemDetails:
       type: object
       required:
